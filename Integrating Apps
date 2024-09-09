@@ -1,0 +1,266 @@
+# Importing libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+# scipi is a library for statistical tests and visualizations 
+from scipy import stats
+# random enables us to generate random numbers
+import random
+
+# Now that the files are saved, we want to load them into Python using read_csv and pandas.
+# Create a variable called google, and store in it the path of the csv file that contains your google dataset.
+google = r"C:\Users\jwhit\OneDrive\Documents\Data Science Course\Hypothesis Testing in Python\googleplaystore.csv"
+
+# Read the csv file into a data frame called Google using the read_csv() pandas method.
+Google = pd.read_csv(google, delimiter=',', engine='python')
+
+# Using the head() pandas method, observe the first three entries.
+print("\nFirst three entries from Google data:")
+print(Google.head(3))
+
+# Create a variable called apple, and store in it the path of the csv file that contains your apple dataset.
+apple = r"C:\Users\jwhit\OneDrive\Documents\Data Science Course\Hypothesis Testing in Python\AppleStore.csv"
+
+# Read the csv file into a pandas DataFrame object called Apple.
+Apple = pd.read_csv(apple, delimiter=',', engine='python')
+
+# Observe the first three entries like you did with your other data.
+print("\nFirst three entries from Apple data:")
+print(Apple.head(3))
+
+# From the documentation, the most appropriate columns are:
+# Google: ['Category', 'Rating', 'Reviews', 'Price']
+# Apple: ['prime_genre', 'user_rating', 'rating_count_tot', 'price']
+
+# Subset our DataFrame object Google by selecting just the variables ['Category', 'Rating', 'Reviews', 'Price']
+Google = Google[['Category', 'Rating', 'Reviews', 'Price']]
+
+# Check the first three entries
+print("\nGoogle data after subsetting:")
+print(Google.head(3))
+
+# Do the same with our Apple object, selecting just the variables ['prime_genre', 'user_rating', 'rating_count_tot', 'price']
+Apple = Apple[['prime_genre', 'user_rating', 'rating_count_tot', 'price']]
+
+# Check the first three entries
+print("\nApple data after subsetting:")
+print(Apple.head(3))
+
+# Using the dtypes feature of pandas DataFrame objects, check out the data types within our Apple dataframe.
+print("\nData types in Apple dataframe:")
+print(Apple.dtypes)
+
+# Using the same dtypes feature, check out the data types of our Google dataframe.
+print("\nData types in Google dataframe:")
+print(Google.dtypes)
+
+# Use the unique() pandas method on the Price column to check its unique values in Google dataset.
+print("\nUnique values in the 'Price' column of Google dataset:")
+print(Google['Price'].unique())
+
+# Let's check which data points have the value 'Everyone' for the 'Price' column by subsetting our Google dataframe.
+google_price_issue = Google[Google['Price'] == 'Everyone']
+
+# Display rows where 'Price' is 'Everyone'
+print("\nRows where 'Price' is 'Everyone':")
+print(google_price_issue)
+
+# Eliminate the row where 'Price' is 'Everyone'
+# Subset the Google dataframe to pick out rows where 'Price' is NOT 'Everyone'
+Google = Google[Google['Price'] != 'Everyone']
+
+# Check the unique values in the 'Price' column again to verify the row has been removed
+print("\nUnique values in the 'Price' column after removing 'Everyone':")
+print(Google['Price'].unique())
+
+# Remove dollar symbols from the 'Price' column
+# Create a variable called nosymb, which will remove the dollar signs
+nosymb = Google['Price'].str.replace('$', '')
+
+# Convert the nosymb variable to numeric and assign it back to the 'Price' column in the Google dataframe
+Google['Price'] = pd.to_numeric(nosymb, errors='coerce')
+
+# Check the data types for our Google dataframe again to verify 'Price' is numeric
+print("\nData types in Google dataframe after cleaning the 'Price' column:")
+print(Google.dtypes)
+
+# Convert the 'Reviews' column to a numeric data type
+Google['Reviews'] = pd.to_numeric(Google['Reviews'], errors='coerce')
+
+# Check the data types of the Google dataframe again to confirm 'Reviews' is now numeric
+print("\nData types in Google dataframe after converting 'Reviews' to numeric:")
+print(Google.dtypes)
+
+# Add a platform column to the Google dataframe with the value 'google'
+Google['platform'] = 'google'
+
+# Add a platform column to the Apple dataframe with the value 'apple'
+Apple['platform'] = 'apple'
+
+# Check the first few entries of both dataframes to ensure the platform column has been added
+print("\nFirst three entries from Google dataframe after adding 'platform' column:")
+print(Google.head(3))
+
+print("\nFirst three entries from Apple dataframe after adding 'platform' column:")
+print(Apple.head(3))
+
+# Create a variable called old_names to store the column names of the Apple dataframe
+old_names = Apple.columns
+
+# Create a variable called new_names to store the column names of the Google dataframe
+new_names = Google.columns
+
+# Use the rename() method to change the column names in the Apple dataframe to match those in Google
+Apple.columns = new_names
+
+# Verify the renaming by printing the first few entries of the Apple dataframe
+print("\nApple dataframe after renaming columns to match Google:")
+print(Apple.head(3))
+
+# Use the append() method to combine the Apple and Google dataframes into a single dataframe called df
+df = pd.concat([Google, Apple], ignore_index=True)
+
+# Use the sample() method to check 12 random points from the combined dataframe
+print("\nRandom sample of 12 points from the combined dataframe:")
+print(df.sample(12))
+
+# Check the dimensions of the dataframe before dropping NaN values
+print("\nDimensions of the dataframe before dropping NaN values:")
+print(df.shape)
+
+# Use the dropna() method to eliminate all the NaN values and overwrite the df dataframe
+df = df.dropna()
+
+# Check the new dimensions of the dataframe after dropping NaN values
+print("\nDimensions of the dataframe after dropping NaN values:")
+print(df.shape)
+
+# Verify that NaN values have been removed by checking a few random samples
+print("\nRandom sample of 12 points from the dataframe after removing NaN values:")
+print(df.sample(12))
+
+# Subset the dataframe to pick out rows where 'Reviews' is equal to 0, and count them
+zero_reviews = df[df['Reviews'] == 0]
+print("\nNumber of apps with 0 reviews:")
+print(zero_reviews.shape[0])
+
+# Eliminate the rows where 'Reviews' is equal to 0
+df = df[df['Reviews'] != 0]
+
+# Verify that the rows with 0 reviews have been removed by checking the shape of the dataframe
+print("\nNew dimensions of the dataframe after removing apps with 0 reviews:")
+print(df.shape)
+
+# Group the dataframe by the 'platform' column and summarize the 'Rating' column
+rating_summary = df.groupby('platform')['Rating'].describe()
+
+# Display the summary statistics for the 'Rating' column, grouped by platform
+print("\nSummary of 'Rating' column by platform:")
+print(rating_summary)
+
+# Create a boxplot to visualize the distribution of 'Rating' by 'platform'
+plt.figure(figsize=(8,6))
+sns.boxplot(x='platform', y='Rating', data=df)
+
+# Add labels and title for clarity
+plt.title('Distribution of App Ratings by Platform')
+plt.xlabel('Platform')
+plt.ylabel('Rating')
+plt.show()
+
+# Create subsets of the 'Rating' column by platform
+apple = df[df['platform'] == 'apple']['Rating']
+google = df[df['platform'] == 'google']['Rating']
+
+# Use stats.normaltest() to check if the apple data is normally distributed
+apple_normal = stats.normaltest(apple)
+print("\nNormality test result for Apple ratings:")
+print(apple_normal)
+
+# Use stats.normaltest() to check if the google data is normally distributed
+google_normal = stats.normaltest(google)
+print("\nNormality test result for Google ratings:")
+print(google_normal)
+
+# Create a histogram of the Apple ratings distribution
+plt.figure(figsize=(8,6))
+plt.hist(apple, bins=20, color='blue', alpha=0.7)
+plt.title('Distribution of Apple Ratings')
+plt.xlabel('Rating')
+plt.ylabel('Frequency')
+plt.grid(True)
+plt.show()
+
+# Create a histogram of the Google ratings distribution
+plt.figure(figsize=(8,6))
+plt.hist(google, bins=20, color='green', alpha=0.7)
+plt.title('Distribution of Google Ratings')
+plt.xlabel('Rating')
+plt.ylabel('Frequency')
+plt.grid(True)
+plt.show()
+
+# Create a column called 'Permutation1' by shuffling (permuting) the 'Rating' column
+df['Permutation1'] = np.random.permutation(df['Rating'])
+
+# Use the describe() method to summarize the permutation grouped by 'platform'
+permutation_summary = df.groupby('platform')['Permutation1'].describe()
+
+# Print the summary of the permutation test
+print("\nSummary of 'Permutation1' column by platform:")
+print(permutation_summary)
+
+# Compare with the previous analytical summary (observed ratings summary)
+observed_summary = df.groupby('platform')['Rating'].describe()
+print("\nSummary of observed 'Rating' column by platform (for comparison):")
+print(observed_summary)
+
+# Create a list to store the differences in means between Apple and Google
+difference = []
+
+# Run 10,000 permutations and calculate the difference in mean ratings
+for _ in range(10000):
+    # Permute the 'Rating' column
+    permuted_ratings = np.random.permutation(df['Rating'])
+    
+    # Calculate the mean rating for Apple and Google from the permuted data
+    perm_apple_mean = permuted_ratings[df['platform'] == 'apple'].mean()
+    perm_google_mean = permuted_ratings[df['platform'] == 'google'].mean()
+    
+    # Calculate the difference between the means and append to the list
+    difference.append(perm_apple_mean - perm_google_mean)
+
+# Convert the list of differences to a numpy array for easier manipulation
+difference = np.array(difference)
+
+# Print the first few differences to check
+print("\nFirst few differences from 10,000 permutations:")
+print(difference[:5])
+
+# Plot the histogram of the differences from the permutation test
+plt.figure(figsize=(8,6))
+histo = plt.hist(difference, bins=30, color='purple', alpha=0.7)
+plt.title('Distribution of Differences from Permutation Test')
+plt.xlabel('Difference in Means (Apple - Google)')
+plt.ylabel('Frequency')
+plt.grid(True)
+plt.show()
+
+# Calculate the observed difference between the mean ratings of Apple and Google
+obs_difference = abs(apple.mean() - google.mean())
+
+# Print the observed difference
+print("\nObserved difference between Apple and Google mean ratings (absolute):")
+print(obs_difference)
+
+# 4a: What is our conclusion?
+# Calculate how many of the differences in the 'difference' list are at least as extreme as the observed difference
+extreme_differences = np.sum(np.abs(difference) >= obs_difference)
+
+# Calculate the p-value as the proportion of extreme differences
+p_value = extreme_differences / len(difference)
+
+# Print the p-value
+print("\nP-value from the permutation test:")
+print(p_value)
